@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  background: #f8fafc;
+  color: #1e293b;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root.dark {
+  color-scheme: dark;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+
+  background:
+    radial-gradient(circle at top right, rgba(59,130,246,0.08), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(16,185,129,0.08), transparent 40%),
+    #f8fafc;
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(16,185,129,0.12), transparent 40%),
+    #0f172a;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.section-pad {
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
+.surface {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.dark .surface {
+  border-color: #334155;
+  background: rgba(15,23,42,0.8);
+}
+
+.mini-surface {
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.dark .mini-surface {
+  border-color: #334155;
+  background: rgba(15,23,42,0.6);
+}
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.2);
+}
+
+@media (min-width: 640px) {
+  .app-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .section-pad {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .section-pad {
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+}
