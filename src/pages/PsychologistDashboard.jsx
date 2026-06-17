@@ -5,26 +5,25 @@ import {
   FileText,
   Mail,
   Phone,
-  RefreshCcw,
+  Stethoscope,
   UserRound,
   XCircle,
 } from "lucide-react";
-import { useMemo, useState,useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AppointmentCard from "../components/AppointmentCard";
 import Button from "../components/Button";
 import MoodTag from "../components/MoodTag";
 import Sidebar from "../components/Sidebar";
-
+import API from "../services/api";
 
 function DoctorControls({ session, onUpdate }) {
   const [rejectReason, setRejectReason] = useState(
-    session.rejectionReason || ""
+    session.privateNotes || ""
   );
-  const [rescheduleAt, setRescheduleAt] = useState("");
 
   return (
     <div className="grid gap-4">
-      <div className="grid gap-3 rounded-lg bg-cloud/55 p-4 dark:bg-white/[0.05] md:grid-cols-2">
+      <div className="grid gap-4 rounded-lg bg-cloud/55 p-4 dark:bg-white/[0.05] md:grid-cols-2">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
             Patient details
@@ -33,50 +32,65 @@ function DoctorControls({ session, onUpdate }) {
           <div className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-300">
             <span className="flex items-center gap-2">
               <UserRound className="h-4 w-4 text-calm" />
-              {session.age} years, {session.gender}
+              {session.patientName || session.patient?.name}
             </span>
 
             <span className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-lavender" />
-              {session.email}
+              {session.patientEmail || session.patient?.email}
             </span>
 
             <span className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-sage" />
-              {session.phone}
+             {session.patientPhone || session.patient?.phone}
             </span>
+
+            {session.patientAge || session.patientGender ? (
+              <span className="text-slate-500 dark:text-slate-400">
+                {session.patientAge ? `${session.patientAge} years` : "Age not shared"}
+                {session.patientGender ? `, ${session.patientGender}` : ""}
+              </span>
+            ) : null}
           </div>
         </div>
 
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-            Mental health summary
+            Appointment summary
           </p>
 
-          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Sleep: {session.sleep}. Therapy history: {session.therapyHistory}.
-          </p>
+          <div className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <span className="flex items-center gap-2">
+              <Stethoscope className="h-4 w-4 text-calm" />
+              {session.sessionType}
+            </span>
+
+            <p className="leading-6">
+             {session.reason}
+            </p>
+
+            {session.therapyHistory ? (
+              <p className="leading-6">
+                <span className="font-semibold text-ink dark:text-white">
+                  Therapy history:
+                </span>{" "}
+                {session.therapyHistory}
+              </p>
+            ) : null}
+
+            {session.symptoms?.length ? (
+              <p className="leading-6">
+                <span className="font-semibold text-ink dark:text-white">
+                  Symptoms:
+                </span>{" "}
+                {session.symptoms.join(", ")}
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
 
-      <label className="block">
-        <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-          Private preparation notes
-        </span>
-
-        <textarea
-          value={session.privateNotes || ""}
-          onChange={(e) =>
-            onUpdate(session.id, {
-              privateNotes: e.target.value,
-            })
-          }
-          rows={3}
-          className="focus-ring w-full resize-none rounded-lg border border-slate-200 bg-white/80 px-4 py-3 text-sm text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
-        />
-      </label>
-
-      <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+      <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
         <label className="block">
           <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
             Reject reason
@@ -86,29 +100,16 @@ function DoctorControls({ session, onUpdate }) {
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             className="focus-ring w-full rounded-lg border border-slate-200 bg-white/80 px-4 py-3 text-sm text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
-            placeholder="Optional reason"
+            placeholder="Optional internal note"
           />
         </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-            New time
-          </span>
-
-          <input
-            type="datetime-local"
-            value={rescheduleAt}
-            onChange={(e) => setRescheduleAt(e.target.value)}
-            className="focus-ring w-full rounded-lg border border-slate-200 bg-white/80 px-4 py-3 text-sm text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
-          />
-        </label>
-
-        <div className="grid grid-cols-2 gap-2 self-end sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-3 gap-2 self-end">
           <Button
             variant="success"
             icon={CheckCircle}
             onClick={() =>
-              onUpdate(session.id, {
+              onUpdate(session._id, {
                 status: "Accepted",
               })
             }
@@ -120,9 +121,9 @@ function DoctorControls({ session, onUpdate }) {
             variant="danger"
             icon={XCircle}
             onClick={() =>
-              onUpdate(session.id, {
+              onUpdate(session._id, {
                 status: "Rejected",
-                rejectionReason: rejectReason || "Not available",
+                privateNotes: rejectReason,
               })
             }
           >
@@ -130,24 +131,10 @@ function DoctorControls({ session, onUpdate }) {
           </Button>
 
           <Button
-            variant="secondary"
-            icon={RefreshCcw}
-            onClick={() =>
-              onUpdate(session.id, {
-                status: "Rescheduled",
-                rescheduledDateTime:
-                  rescheduleAt || new Date().toISOString(),
-              })
-            }
-          >
-            Reschedule
-          </Button>
-
-          <Button
             variant="outline"
             icon={ClipboardCheck}
             onClick={() =>
-              onUpdate(session.id, {
+              onUpdate(session._id, {
                 status: "Completed",
               })
             }
@@ -161,34 +148,21 @@ function DoctorControls({ session, onUpdate }) {
 }
 
 export default function PsychologistDashboard() {
-  const [sessions, setSessions] = useState(() => {
-  const allSessions = [];
+  const [sessions, setSessions] = useState([]);
 
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("appointments-")) {
-      const data =
-        JSON.parse(localStorage.getItem(key)) || [];
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
 
-      allSessions.push(...data);
+  const fetchAppointments = async () => {
+    try {
+      const res = await API.get("/appointments/doctor/all");
+      setSessions(res.data.appointments || []);
+    } catch (error) {
+      console.log(error);
     }
-  });
+  };
 
-  return allSessions;
-});
-useEffect(() => {
-  const allSessions = [];
-
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("appointments-")) {
-      const data =
-        JSON.parse(localStorage.getItem(key)) || [];
-
-      allSessions.push(...data);
-    }
-  });
-
-  setSessions(allSessions);
-}, []);
   const stats = useMemo(
     () => [
       {
@@ -198,54 +172,30 @@ useEffect(() => {
       },
       {
         label: "Pending review",
-        value: sessions.filter(
-          (session) => session.status === "Pending"
-        ).length,
+        value: sessions.filter((session) => session.status === "Pending").length,
         icon: CalendarClock,
       },
       {
         label: "Accepted",
-        value: sessions.filter(
-          (session) => session.status === "Accepted"
-        ).length,
+        value: sessions.filter((session) => session.status === "Accepted").length,
         icon: CheckCircle,
       },
     ],
     [sessions]
   );
 
- const updateSession = (id, patch) => {
-  setSessions((current) => {
-    const updated = current.map((session) => {
-      if (session.id !== id) return session;
-
-      const updatedSession = {
-        ...session,
-        ...patch,
-      };
-
-      // Save back to the correct patient's storage
-      const storageKey = `appointments-${session.email}`;
-
-      const patientAppointments =
-        JSON.parse(localStorage.getItem(storageKey)) || [];
-
-      const updatedPatientAppointments =
-        patientAppointments.map((appt) =>
-          appt.id === id ? updatedSession : appt
-        );
-
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify(updatedPatientAppointments)
+  const updateSession = async (id, patch) => {
+    try {
+      await API.put(`/appointments/${id}/status`, patch);
+      await fetchAppointments();
+    } catch (error) {
+      console.log(error);
+      alert(
+        error?.response?.data?.message ||
+          "Failed to update appointment"
       );
-
-      return updatedSession;
-    });
-
-    return updated;
-  });
-};
+    }
+  };
 
   return (
     <div className="min-h-screen pb-24 lg:pb-0">
@@ -283,14 +233,13 @@ useEffect(() => {
                 </div>
               ))}
             </div>
-            
           </section>
 
           <section className="mt-6 grid gap-4">
             {sessions.length > 0 ? (
               sessions.map((session) => (
                 <AppointmentCard
-                  key={session.id}
+                  key={session._id}
                   session={session}
                 >
                   <DoctorControls

@@ -1,19 +1,36 @@
+
 export const psychologist = {
-  name: "Dr.Parvathi Kashyap",
-  title: "Consultant Psychologist",
-  qualification: "PhD Clinical Psychology, MSc Psychology",
-  location: "Serenity Mind Clinic, Indiranagar",
+  name: "Dr. Parvathi Kashyap",
+  title: "Consultant Clinical Psychologist",
+  qualification:
+    "M.A. Psychology, M.Com, M.A. Economics, B.Ed",
+  location: "Seethammadhara, Visakhapatnam",
+
+  photo: "/assets/images/dr-parvathi-kashyap.jpg",
+  gallery: [
+    "/assets/images/dr-parvathi-1.jpg",
+    "/assets/images/dr-parvathi-2.jpg",
+    "/assets/images/dr-parvathi-3.jpg",
+    "/assets/images/dr-parvathi-4.jpg",
+  ],
+
+ 
+
+
+
+
+  
   experience:
-    "Dr. Mehta has supported adults, students, and working professionals for more than 12 years through evidence-based therapy, crisis-aware planning, and compassionate long-term care.",
+     "Experienced Clinical Psychologist with over 15 years of expertise in counseling, psycho-oncology support, stress management, depression care, family counseling, and mental wellness programs.",
   bio:
-    "Her practice focuses on helping people feel safe enough to understand their patterns, build emotional skills, and take realistic steps toward steadier days.",
+    "Dr. Parvathi Kashyap has dedicated her career to helping individuals, families, students, and cancer patients overcome emotional challenges through compassionate and evidence-based psychological care.",
   specializations: [
-    "Anxiety",
-    "Depression",
-    "Stress management",
-    "Relationship counseling",
-    "ADHD support",
-    "PTSD support",
+   "Stress Management",
+    "Depression Counseling",
+    "Anxiety Disorders",
+    "Family Counseling",
+    "Adolescent Mental Health",
+    "Psycho-Oncology"
   ],
   approach: [
     {
@@ -29,6 +46,46 @@ export const psychologist = {
       description: "Paced conversations that prioritize safety, choice, and nervous-system stability.",
     },
   ],
+  certifications: [
+  {
+    title: "Clinical Psychology Certification",
+    issuer: "Andhra University"
+  },
+  {
+    title: "Oncopsychology Training",
+    issuer: "Cancer Care Support Program"
+  },
+  {
+    title: "Family Counseling Program",
+    issuer: "Mental Health Foundation"
+  },
+  {
+    title: "Motivational Psychology Workshop",
+    issuer: "National Psychology Association"
+  }
+],
+timeline: [
+  {
+    year: "2010",
+    title: "Started Clinical Practice"
+  },
+  {
+    year: "2014",
+    title: "Joined Queen's NRI Hospital"
+  },
+  {
+    year: "2017",
+    title: "Mental Health Awareness Programs"
+  },
+  {
+    year: "2020",
+    title: "Cancer Patient Counseling"
+  },
+  {
+    year: "2024",
+    title: "15+ Years of Clinical Experience"
+  }
+],
   achievements: [
     {
       title: "Certified CBT Practitioner",
@@ -46,11 +103,13 @@ export const psychologist = {
       image: "/assets/images/cert-trauma.svg",
     },
   ],
+  
   contact: {
-    phone: "+91 98765 43210",
-    email: "care@serenitymind.example",
-    address: "Seethammadhara,Visakhapatnam",
-    linkedin: "linkedin.com/in/dr-ananya-mehta",
-    instagram: "@serenitymindclinic",
-  },
+  phone: "+91 98765 43210",
+  email: "care@serenitymind.example",
+  address: "Seethammadhara, Visakhapatnam",
+
+  
+},
+  
 };

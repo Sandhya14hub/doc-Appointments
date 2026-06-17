@@ -22,6 +22,11 @@ export const statusStyles = {
     className: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-400/10 dark:text-emerald-200",
     dot: "bg-emerald-400",
   },
+  Approved: {
+    label: "Accepted",
+    className: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-400/10 dark:text-emerald-200",
+    dot: "bg-emerald-400",
+  },
   Rejected: {
     label: "Rejected",
     className: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-400/10 dark:text-rose-200",

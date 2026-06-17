@@ -1,24 +1,24 @@
-import { LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
+import { LockKeyhole, Mail, Phone, Stethoscope, UserRound } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import InputField from "../components/InputField";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-import { genderOptions } from "../utils/constants";
 
-export default function Register() {
+export default function DoctorRegister() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { registerDoctor } = useAuth();
 
   const [form, setForm] = useState({
-    fullName: "",
-    age: "",
-    gender: genderOptions[0],
+    name: "",
     email: "",
-    password: "",
     phone: "",
+    specialization: "",
+    password: "",
   });
+
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -29,19 +29,30 @@ export default function Register() {
     }));
   };
 
-  const handleSubmit = (event) => {
-  event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
 
-  try {
-    register(form);
+    try {
+      await registerDoctor(form);
 
-    alert("Registration Successful");
+      alert("Doctor registration successful");
 
-    navigate("/login");
-  } catch (error) {
-    alert(error.message);
-  }
-};
+      navigate("/doctor-login", {
+        state: {
+          email: form.email,
+        },
+      });
+    } catch (error) {
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to register doctor"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -53,43 +64,25 @@ export default function Register() {
           className="surface w-full max-w-3xl p-6 sm:p-8"
         >
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-lavender">
-            Patient Registration
+            Doctor Registration
           </p>
 
           <h1 className="mt-2 text-3xl font-black text-ink dark:text-white">
-            Create your care profile
+            Create your doctor account
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Create a profile to schedule appointments and access your dashboard.
+            Register as a doctor to sign in, manage the dashboard, and review incoming appointments.
           </p>
 
           <div className="mt-7 grid gap-4 sm:grid-cols-2">
             <InputField
-              label="Full Name"
-              name="fullName"
-              value={form.fullName}
+              label="Name"
+              name="name"
+              value={form.name}
               onChange={handleChange}
               icon={UserRound}
               required
-            />
-
-            <InputField
-              label="Age"
-              name="age"
-              type="number"
-              min="12"
-              value={form.age}
-              onChange={handleChange}
-              required
-            />
-
-            <InputField
-              label="Gender"
-              name="gender"
-              value={form.gender}
-              onChange={handleChange}
-              options={genderOptions}
             />
 
             <InputField
@@ -103,16 +96,6 @@ export default function Register() {
             />
 
             <InputField
-              label="Password"
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              icon={LockKeyhole}
-              required
-            />
-
-            <InputField
               label="Phone Number"
               name="phone"
               type="tel"
@@ -121,20 +104,42 @@ export default function Register() {
               icon={Phone}
               required
             />
+
+            <InputField
+              label="Specialization"
+              name="specialization"
+              value={form.specialization}
+              onChange={handleChange}
+              icon={Stethoscope}
+              required
+            />
+
+            <InputField
+              label="Password"
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              icon={LockKeyhole}
+              required
+            />
           </div>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button type="submit">
-              Register Patient
+            <Button
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "Registering..." : "Register Doctor"}
             </Button>
 
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Already registered?{" "}
               <Link
-                to="/login"
+                to="/doctor-login"
                 className="font-bold text-calm hover:underline"
               >
-                Login
+                Doctor Login
               </Link>
             </p>
           </div>

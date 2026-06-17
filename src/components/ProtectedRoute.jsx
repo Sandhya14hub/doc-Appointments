@@ -10,16 +10,14 @@ export default function ProtectedRoute({
   if (!user) {
     return (
       <Navigate
-        to={role === "doctor"
-          ? "/doctor-login"
-          : "/login"}
+        to="/doctor-login"
         replace
       />
     );
   }
 
   if (role && user.role !== role) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/doctor-login" replace />;
   }
 
   return children;

@@ -21,6 +21,9 @@ import Navbar from "../components/Navbar";
 import PsychologistCard from "../components/PsychologistCard";
 import TherapyCard from "../components/TherapyCard";
 import { psychologist } from "../data/mockPsychologist";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 
 const therapyCards = [
   {
@@ -62,6 +65,8 @@ const therapyCards = [
 ];
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+const { user } = useAuth();
   return (
     <div className="min-h-screen text-ink dark:text-white">
       <Navbar />
@@ -86,17 +91,33 @@ export default function LandingPage() {
                 {psychologist.bio}
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                <Link to="/patient/book">
-                  <Button icon={CalendarDays} iconRight={ArrowRight} fullWidth className="sm:w-auto">
-                    Book Therapy Session
-                  </Button>
-                </Link>
-                <Link to="/login">
-                  <Button variant="outline" fullWidth className="sm:w-auto">
-                    Login
-                  </Button>
-                </Link>
-              </div>
+  <Button
+    icon={CalendarDays}
+    iconRight={ArrowRight}
+    onClick={() =>
+      navigate("/book-session")
+    }
+  >
+    Book Therapy Session
+  </Button>
+
+  {user ? (
+    <Button
+      variant="outline"
+      onClick={() =>
+        navigate("/doctor")
+      }
+    >
+      Dashboard
+    </Button>
+  ) : (
+    <Link to="/doctor-login">
+      <Button variant="outline">
+        Doctor Login
+      </Button>
+    </Link>
+  )}
+</div>
             </div>
           </div>
         </section>

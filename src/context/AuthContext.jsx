@@ -1,123 +1,111 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { doctors } from "../data/doctors";
+import API from "../services/api";
 
 const AuthContext = createContext(null);
 
+function readStoredDoctorUser() {
+  try {
+    const saved = localStorage.getItem("psychcare-user");
+
+    if (!saved) {
+      return null;
+    }
+
+    const parsed = JSON.parse(saved);
+    return parsed?.role === "doctor" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearLegacyAuthState() {
+  try {
+    const saved = localStorage.getItem("psychcare-user");
+
+    if (!saved) {
+      return;
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (parsed?.role && parsed.role !== "doctor") {
+      localStorage.removeItem("psychcare-user");
+      localStorage.removeItem("token");
+    }
+  } catch {
+    localStorage.removeItem("psychcare-user");
+    localStorage.removeItem("token");
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("psychcare-user");
-    return saved ? JSON.parse(saved) : null;
+    const token = localStorage.getItem("token");
+    const savedDoctor = readStoredDoctorUser();
+
+    return token && savedDoctor ? savedDoctor : null;
   });
 
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("psychcare-theme") === "dark"
   );
 
-
-  // ADD THIS BLOCK HERE
-  
   useEffect(() => {
-  
-
-  const users =
-    JSON.parse(localStorage.getItem("psychcare-users")) || [];
-
-  
-
-  const doctor = users.find(
-    (u) => u.email === "abc@gmail.com"
-  );
-
-  if (!doctor) {
-    users.push({
-      id: "DOC-001",
-      name: "Dr.Parvathi Kashyap",
-      email: "abc@gmail.com",
-      password: "123",
-      phone: "9876543210",
-      role: "doctor",
-    });
-
-    localStorage.setItem(
-      "psychcare-users",
-      JSON.stringify(users)
-    );
-
-    console.log("Doctor account created");
-  }
-
-  
-}, []);
-  // existing useEffects continue here...
+    clearLegacyAuthState();
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
-    localStorage.setItem(
-      "psychcare-theme",
-      darkMode ? "dark" : "light"
-    );
+    localStorage.setItem("psychcare-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
-  const register = (form) => {
-    const users =
-      JSON.parse(localStorage.getItem("psychcare-users")) || [];
-
-    const existingUser = users.find(
-      (u) => u.email === form.email
-    );
-
-    if (existingUser) {
-      throw new Error("Email already registered");
+  useEffect(() => {
+    if (user?.role === "doctor") {
+      localStorage.setItem("psychcare-user", JSON.stringify(user));
+      return;
     }
 
-    const newUser = {
-      id: `PAT-${Date.now()}`,
-      name: form.fullName,
-      age: form.age,
-      gender: form.gender,
-      phone: form.phone,
-      email: form.email,
-      password: form.password,
-      role: "patient",
-    };
+    localStorage.removeItem("psychcare-user");
+  }, [user]);
 
-    users.push(newUser);
+  const login = async ({ email, password }) => {
+    const response = await API.post("/auth/login", {
+      email,
+      password,
+    });
 
-    localStorage.setItem(
-      "psychcare-users",
-      JSON.stringify(users)
-    );
+    const { token, user: loggedInUser } = response.data || {};
 
-    return newUser;
+    if (!token || !loggedInUser) {
+      throw new Error("Unable to sign in");
+    }
+
+    if (loggedInUser.role !== "doctor") {
+      throw new Error("Doctor access only");
+    }
+
+    localStorage.setItem("token", token);
+    setUser(loggedInUser);
+
+    return loggedInUser;
   };
 
-  const login = ({ email, password }) => {
-  const users =
-    JSON.parse(localStorage.getItem("psychcare-users")) || [];
+  const registerDoctor = async (form) => {
+    const response = await API.post("/auth/register", {
+      name: form.name || form.fullName || "",
+      email: form.email,
+      phone: form.phone,
+      specialization: form.specialization,
+      password: form.password,
+    });
 
-  const foundUser = users.find(
-    (u) =>
-      u.email === email &&
-      u.password === password
-  );
-
-  if (!foundUser) {
-    return null;
-  }
-
-  setUser(foundUser);
-
-  localStorage.setItem(
-    "psychcare-user",
-    JSON.stringify(foundUser)
-  );
-
-  return foundUser;
-};
+    return response.data;
+  };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("psychcare-user");
+    localStorage.removeItem("token");
   };
 
   const toggleDarkMode = () => {
@@ -128,8 +116,8 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       darkMode,
-      register,
       login,
+      registerDoctor,
       logout,
       toggleDarkMode,
     }),
@@ -147,9 +135,7 @@ export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider"
-    );
+    throw new Error("useAuth must be used inside AuthProvider");
   }
 
   return context;

@@ -1,31 +1,20 @@
 import {
+  Building2,
   CalendarClock,
   Mail,
   MessageCircle,
+  MessagesSquare,
   Phone,
+  Stethoscope,
   UserRound,
   Video,
-  Building2,
-  MessagesSquare,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import API from "../services/api";
 import { genderOptions, sessionTypes, symptomOptions } from "../utils/constants";
+import { psychologist } from "../data/mockPsychologist";
 import Button from "./Button";
 import InputField from "./InputField";
-
-const initialForm = {
-  fullName: "",
-  age: "",
-  gender: genderOptions[0],
-  email: "",
-  phone: "",
-  preferredDateTime: "",
-  sessionType: sessionTypes[0],
-  reason: "",
-  anxietyLevel: 4,
-  symptoms: [],
-  therapyHistory: "",
-};
 
 const sessionIcons = {
   "Video Call": Video,
@@ -33,30 +22,48 @@ const sessionIcons = {
   "Chat session": MessagesSquare,
 };
 
-export default function SessionForm({ compact = false, onBooked }) {
-  const currentUser = JSON.parse(
-  localStorage.getItem("psychcare-user")
-);
+function createInitialForm() {
+  return {
+    patientName: "",
+    patientEmail: "",
+    patientPhone: "",
+    patientAge: "",
+    patientGender: genderOptions[0],
+    doctorName: psychologist.name,
+    doctorId: "",
+    specialization: psychologist.title,
+    preferredDateTime: "",
+    sessionType: sessionTypes[0],
+    reason: "",
+    anxietyLevel: 4,
+    symptoms: [],
+    therapyHistory: "",
+  };
+}
 
-const [form, setForm] = useState({
-  ...initialForm,
-  fullName: currentUser?.name || "",
-  age: currentUser?.age || "",
-  gender: currentUser?.gender || "Female",
-  email: currentUser?.email || "",
-  phone: currentUser?.phone || "",
-});
+export default function SessionForm({ compact = false, onBooked }) {
+  const [form, setForm] = useState(createInitialForm);
   const [submitted, setSubmitted] = useState(false);
 
   const sessionHint = useMemo(() => {
-    if (form.sessionType === "Video Call") return "Secure link will be shared after acceptance.";
-    if (form.sessionType === "In-person") return "Clinic arrival details appear in your notification panel.";
+    if (form.sessionType === "Video Call") {
+      return "A secure link can be shared after the doctor accepts the request.";
+    }
+
+    if (form.sessionType === "In-person") {
+      return "Clinic arrival details appear after the appointment is reviewed.";
+    }
+
     return "Best for low-pressure check-ins and follow-up questions.";
   }, [form.sessionType]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
   };
 
   const toggleSymptom = (symptom) => {
@@ -68,66 +75,63 @@ const [form, setForm] = useState({
     }));
   };
 
-  const handleSubmit = (event) => {
-  event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  const currentUser =
-    JSON.parse(localStorage.getItem("psychcare-user")) || {};
+    try {
+      const response = await API.post("/appointments", {
+        patientName: form.patientName,
+        patientEmail: form.patientEmail,
+        patientPhone: form.patientPhone,
+        patientAge: form.patientAge,
+        patientGender: form.patientGender,
+        doctorName: form.doctorName,
+        doctorId: form.doctorId,
+        specialization: form.specialization,
+        appointmentDate: form.preferredDateTime,
+        sessionType: form.sessionType,
+        reason: form.reason,
+        anxietyLevel: form.anxietyLevel,
+        symptoms: form.symptoms,
+        therapyHistory: form.therapyHistory,
+      });
 
-  const bookedSession = {
-    id: `SES-${Date.now()}`,
-    patientName: form.fullName,
-    age: Number(form.age),
-    gender: form.gender,
-    email: form.email,
-    phone: form.phone,
-    preferredDateTime: form.preferredDateTime,
-    sessionType: form.sessionType,
-    reason: form.reason,
-    symptoms: form.symptoms,
-    anxietyLevel: Number(form.anxietyLevel),
-    sleep: form.symptoms.includes("Sleep issues")
-      ? "Sleep issues reported"
-      : "Not specified",
-    therapyHistory: form.therapyHistory,
-    status: "Pending",
-    privateNotes: "",
+      const bookedAppointment = response.data?.appointment || {
+        ...form,
+        appointmentDate: form.preferredDateTime,
+        status: "Pending",
+      };
+
+      setSubmitted(true);
+
+      if (onBooked) {
+        onBooked(bookedAppointment);
+      }
+
+      alert("Appointment booked successfully!");
+      setForm(createInitialForm());
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      alert(
+        error?.response?.data?.message ||
+          "Failed to book appointment"
+      );
+    }
   };
 
-  const storageKey = `appointments-${currentUser.email}`;
-
-  const existingSessions =
-    JSON.parse(localStorage.getItem(storageKey)) || [];
-
-  existingSessions.push(bookedSession);
-
-  localStorage.setItem(
-    storageKey,
-    JSON.stringify(existingSessions)
-  );
-
-  setSubmitted(true);
-
-  if (onBooked) {
-    onBooked(bookedSession);
-  }
-
-  setForm({
-    ...initialForm,
-    fullName: currentUser?.name || "",
-    age: currentUser?.age || "",
-    gender: currentUser?.gender || "Female",
-    email: currentUser?.email || "",
-    phone: currentUser?.phone || "",
-  });
-}; 
-
   return (
-    <form onSubmit={handleSubmit} className="surface p-5 sm:p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="surface p-5 sm:p-6"
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-calm">Book therapy session</p>
-          <h2 className="mt-2 text-2xl font-bold text-ink dark:text-white">Choose a calm starting point</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-calm">
+            Book therapy session
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-ink dark:text-white">
+            Share your details and choose a time
+          </h2>
         </div>
         <span className="hidden rounded-lg bg-lavender/15 p-3 text-lavender sm:inline-flex">
           <MessageCircle className="h-5 w-5" />
@@ -136,47 +140,75 @@ const [form, setForm] = useState({
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <InputField
-          label="Full Name"
-          name="fullName"
-          value={form.fullName}
+          label="Patient Name"
+          name="patientName"
+          value={form.patientName}
           onChange={handleChange}
           placeholder="Your name"
           icon={UserRound}
           required
         />
+
         <InputField
-          label="Age"
-          name="age"
-          type="number"
-          min="12"
-          value={form.age}
-          onChange={handleChange}
-          placeholder="29"
-          required
-        />
-        <InputField label="Gender" name="gender" value={form.gender} onChange={handleChange} options={genderOptions} />
-        <InputField
-          label="Email"
-          name="email"
+          label="Patient Email"
+          name="patientEmail"
           type="email"
-          value={form.email}
+          value={form.patientEmail}
           onChange={handleChange}
           placeholder="you@example.com"
           icon={Mail}
           required
         />
+
         <InputField
-          label="Phone Number"
-          name="phone"
+          label="Patient Phone Number"
+          name="patientPhone"
           type="tel"
-          value={form.phone}
+          value={form.patientPhone}
           onChange={handleChange}
           placeholder="+91 90000 00000"
           icon={Phone}
           required
         />
+
         <InputField
-          label="Preferred Date & Time"
+          label="Patient Age"
+          name="patientAge"
+          type="number"
+          min="12"
+          value={form.patientAge}
+          onChange={handleChange}
+          placeholder="29"
+        />
+
+        <InputField
+          label="Patient Gender"
+          name="patientGender"
+          value={form.patientGender}
+          onChange={handleChange}
+          options={genderOptions}
+        />
+
+        <InputField
+          label="Doctor Name / ID"
+          name="doctorName"
+          value={form.doctorName}
+          onChange={handleChange}
+          icon={Stethoscope}
+          required
+        />
+
+        <InputField
+          label="Specialization"
+          name="specialization"
+          value={form.specialization}
+          onChange={handleChange}
+          icon={Stethoscope}
+          required
+        />
+
+        <InputField
+          label="Appointment Date & Time"
           name="preferredDateTime"
           type="datetime-local"
           value={form.preferredDateTime}
@@ -187,16 +219,24 @@ const [form, setForm] = useState({
       </div>
 
       <div className="mt-5">
-        <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Session Type</p>
+        <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+          Session Type
+        </p>
         <div className="grid gap-3 sm:grid-cols-3">
           {sessionTypes.map((type) => {
             const Icon = sessionIcons[type];
             const active = form.sessionType === type;
+
             return (
               <button
                 key={type}
                 type="button"
-                onClick={() => setForm((current) => ({ ...current, sessionType: type }))}
+                onClick={() =>
+                  setForm((current) => ({
+                    ...current,
+                    sessionType: type,
+                  }))
+                }
                 className={`focus-ring flex min-h-20 items-center gap-3 rounded-lg border px-4 text-left transition ${
                   active
                     ? "border-calm bg-calm/12 text-ink dark:border-lavender dark:bg-lavender/15 dark:text-white"
@@ -209,12 +249,14 @@ const [form, setForm] = useState({
             );
           })}
         </div>
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{sessionHint}</p>
+        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          {sessionHint}
+        </p>
       </div>
 
       <InputField
         className="mt-5"
-        label="Reason for visit"
+        label="Reason for Visit"
         name="reason"
         value={form.reason}
         onChange={handleChange}
@@ -226,10 +268,13 @@ const [form, setForm] = useState({
       {!compact ? (
         <>
           <div className="mt-5">
-            <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Current symptoms</p>
+            <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Current symptoms
+            </p>
             <div className="flex flex-wrap gap-2">
               {symptomOptions.map((symptom) => {
                 const active = form.symptoms.includes(symptom);
+
                 return (
                   <button
                     key={symptom}
@@ -250,7 +295,10 @@ const [form, setForm] = useState({
 
           <div className="mt-5">
             <div className="flex items-center justify-between">
-              <label htmlFor="anxietyLevel" className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <label
+                htmlFor="anxietyLevel"
+                className="text-sm font-semibold text-slate-700 dark:text-slate-200"
+              >
                 Anxiety or stress level
               </label>
               <span className="rounded-lg bg-calm/12 px-3 py-1 text-xs font-bold text-calm">
@@ -282,18 +330,23 @@ const [form, setForm] = useState({
       ) : null}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Button type="submit" fullWidth className="sm:w-auto">
+        <Button
+          type="submit"
+          fullWidth
+          className="sm:w-auto"
+        >
           Request session
         </Button>
         {submitted ? (
           <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-            Request saved locally with Pending status.
+            Appointment booked successfully.
           </p>
         ) : (
-          <p className="text-sm text-slate-500 dark:text-slate-400">A concise summary helps your psychologist prepare.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            A concise summary helps the doctor prepare.
+          </p>
         )}
       </div>
     </form>
   );
 }
-;

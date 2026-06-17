@@ -1,6 +1,6 @@
 import { LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import InputField from "../components/InputField";
 import Navbar from "../components/Navbar";
@@ -8,32 +8,35 @@ import { useAuth } from "../context/AuthContext";
 
 export default function DoctorLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [form, setForm] = useState({
-    email: "",
+    email: location.state?.email || "",
     password: "",
   });
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const result = login({
-      email: form.email,
-      password: form.password,
-    });
+    try {
+      const result = await login({
+        email: form.email,
+        password: form.password,
+      });
 
-    if (!result) {
-      alert("Invalid Email or Password");
-      return;
+      if (result.role !== "doctor") {
+        throw new Error("This is not a doctor account");
+      }
+
+      navigate("/doctor");
+    } catch (error) {
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Invalid email or password"
+      );
     }
-
-    if (result.role !== "doctor") {
-      alert("This is not a doctor account");
-      return;
-    }
-
-    navigate("/doctor");
   };
 
   return (
@@ -105,6 +108,16 @@ export default function DoctorLogin() {
               />
             </div>
 
+            <div className="mt-3 flex justify-end">
+              <Link
+                to="/forgot-password"
+                state={{ email: form.email }}
+                className="text-sm font-semibold text-calm hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               fullWidth
@@ -114,12 +127,12 @@ export default function DoctorLogin() {
             </Button>
 
             <p className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
-              Patient?{" "}
+              Need a doctor account?{" "}
               <Link
-                to="/login"
+                to="/doctor-register"
                 className="font-bold text-calm hover:underline"
               >
-                Patient Login
+                Register here
               </Link>
             </p>
           </form>

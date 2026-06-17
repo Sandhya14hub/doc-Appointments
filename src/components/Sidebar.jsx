@@ -1,6 +1,5 @@
 import {
   Bell,
-  CalendarPlus,
   ClipboardCheck,
   Home,
   LogOut,
@@ -9,6 +8,8 @@ import {
   Sun,
   UserRound,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import API from "../services/api";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -18,17 +19,31 @@ const navByRole = {
     { to: "/notifications", label: "Notifications", icon: Bell },
     { to: "/", label: "Public page", icon: Home },
   ],
-  patient: [
-    { to: "/patient", label: "Home", icon: Home },
-    { to: "/patient/book", label: "Book", icon: CalendarPlus },
-    { to: "/notifications", label: "Updates", icon: Bell },
-  ],
 };
 
-export default function Sidebar({ role = "patient" }) {
+export default function Sidebar({ role = "doctor" }) {
+  const [notificationCount, setNotificationCount] = useState(0);
+
+useEffect(() => {
+  fetchNotifications();
+}, []);
+
+const fetchNotifications = async () => {
+  try {
+    const res = await API.get("/appointments/doctor/all");
+
+    const count = (res.data.appointments || []).filter(
+      (appointment) => appointment.status === "Pending"
+    ).length;
+
+    setNotificationCount(count);
+  } catch (error) {
+    console.log(error);
+  }
+};
   const { user, logout, darkMode, toggleDarkMode } = useAuth();
   const navigate = useNavigate();
-  const items = navByRole[role] || navByRole.patient;
+  const items = navByRole[role] || navByRole.doctor;
 
   const handleLogout = () => {
     logout();
@@ -45,7 +60,7 @@ export default function Sidebar({ role = "patient" }) {
             </span>
             <div>
               <p className="text-sm font-bold text-ink dark:text-white">PsychCare</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{role === "doctor" ? "Doctor panel" : "Patient care"}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Doctor panel</p>
             </div>
           </div>
 
@@ -56,22 +71,33 @@ export default function Sidebar({ role = "patient" }) {
           </div>
 
           <nav className="mt-8 grid gap-2">
-            {items.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition ${
-                    isActive
-                      ? "bg-ink text-white shadow-glow dark:bg-white dark:text-night"
-                      : "text-slate-600 hover:bg-calm/10 hover:text-ink dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
-                  }`
-                }
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </NavLink>
-            ))}
+           {items.map(({ to, label, icon: Icon }) => (
+  <NavLink
+    key={to}
+    to={to}
+    end={to === "/book-session" || to === "/doctor"}
+    className={({ isActive }) =>
+      `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition ${
+        isActive
+          ? "bg-ink text-white shadow-glow dark:bg-white dark:text-night"
+          : "text-slate-600 hover:bg-calm/10 hover:text-ink dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+      }`
+    }
+  >
+   <Icon className="h-4 w-4" />
+
+<div className="flex items-center gap-2">
+  {label}
+
+  {label === "Notifications" && notificationCount > 0 && (
+    <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">
+      {notificationCount}
+    </span>
+  )}
+</div>
+  </NavLink>
+))}
+            
           </nav>
 
           <div className="mt-auto grid gap-2">
@@ -105,21 +131,32 @@ export default function Sidebar({ role = "patient" }) {
       <nav className="fixed inset-x-3 bottom-3 z-50 rounded-lg border border-white/80 bg-white/90 px-2 py-2 shadow-soft backdrop-blur-xl dark:border-white/10 dark:bg-night/90 lg:hidden">
         <div className="grid grid-cols-3 gap-1">
           {items.slice(0, 3).map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-xs font-bold transition ${
-                  isActive
-                    ? "bg-ink text-white dark:bg-white dark:text-night"
-                    : "text-slate-500 hover:bg-calm/10 dark:text-slate-300"
-                }`
-              }
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </NavLink>
-          ))}
+  <NavLink
+    key={to}
+    to={to}
+    end={to === "/book-session" || to === "/doctor"}
+    className={({ isActive }) =>
+      `flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-xs font-bold transition ${
+        isActive
+          ? "bg-ink text-white dark:bg-white dark:text-night"
+          : "text-slate-500 hover:bg-calm/10 dark:text-slate-300"
+      }`
+    }
+  >
+   <div className="relative">
+  <Icon className="h-4 w-4" />
+
+  {label === "Notifications" && notificationCount > 0 && (
+    <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
+      {notificationCount}
+    </span>
+  )}
+</div>
+
+{label}
+  </NavLink>
+))}
+          
         </div>
       </nav>
     </>

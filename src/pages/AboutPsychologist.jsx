@@ -7,10 +7,16 @@ import Navbar from "../components/Navbar";
 import PsychologistCard from "../components/PsychologistCard";
 import TherapyCard from "../components/TherapyCard";
 import { psychologist } from "../data/mockPsychologist";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+
 
 const approachIcons = [Brain, Flower2, ShieldCheck];
 
 export default function AboutPsychologist() {
+  const navigate = useNavigate();
+const { user } = useAuth();
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -25,14 +31,33 @@ export default function AboutPsychologist() {
                 Therapy that feels structured, kind, and human.
               </h1>
               <p className="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">{psychologist.experience}</p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                <Link to="/patient/book">
-                  <Button iconRight={ArrowRight}>Book Therapy Session</Button>
-                </Link>
-                <Link to="/login">
-                  <Button variant="outline">Login</Button>
-                </Link>
-              </div>
+<div className="mt-7 flex flex-col gap-3 sm:flex-row">
+  <Button
+    iconRight={ArrowRight}
+    onClick={() =>
+      navigate("/book-session")
+    }
+  >
+    Book Therapy Session
+  </Button>
+
+  {user ? (
+    <Button
+      variant="outline"
+      onClick={() =>
+        navigate("/doctor")
+      }
+    >
+      Dashboard
+    </Button>
+  ) : (
+    <Link to="/doctor-login">
+      <Button variant="outline">
+        Doctor Login
+      </Button>
+    </Link>
+  )}
+</div>
             </div>
             <PsychologistCard />
           </div>
