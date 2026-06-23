@@ -149,14 +149,20 @@ function DoctorControls({ session, onUpdate }) {
 
 export default function PsychologistDashboard() {
   const [sessions, setSessions] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetchAppointments();
-  }, []);
+    fetchAppointments(search);
+  }, [search]);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = async (searchValue = "") => {
     try {
-      const res = await API.get("/appointments/doctor/all");
+      const url = searchValue
+        ? `/appointments?search=${encodeURIComponent(searchValue)}`
+        : "/appointments";
+
+      const res = await API.get(url);
+
       setSessions(res.data.appointments || []);
     } catch (error) {
       console.log(error);
@@ -172,12 +178,16 @@ export default function PsychologistDashboard() {
       },
       {
         label: "Pending review",
-        value: sessions.filter((session) => session.status === "Pending").length,
+        value: sessions.filter(
+          (session) => session.status === "Pending"
+        ).length,
         icon: CalendarClock,
       },
       {
         label: "Accepted",
-        value: sessions.filter((session) => session.status === "Accepted").length,
+        value: sessions.filter(
+          (session) => session.status === "Accepted"
+        ).length,
         icon: CheckCircle,
       },
     ],
@@ -187,9 +197,12 @@ export default function PsychologistDashboard() {
   const updateSession = async (id, patch) => {
     try {
       await API.put(`/appointments/${id}/status`, patch);
-      await fetchAppointments();
+
+      // Keep current search active after update
+      await fetchAppointments(search);
     } catch (error) {
       console.log(error);
+
       alert(
         error?.response?.data?.message ||
           "Failed to update appointment"
@@ -203,6 +216,8 @@ export default function PsychologistDashboard() {
 
       <main className="lg:pl-72">
         <div className="app-container py-6 sm:py-8 lg:py-10">
+
+          {/* Dashboard Header */}
           <section className="surface p-5 sm:p-7">
             <MoodTag icon={ClipboardCheck} color="lavender">
               Psychologist dashboard
@@ -235,6 +250,32 @@ export default function PsychologistDashboard() {
             </div>
           </section>
 
+          {/* Search Section */}
+          <section className="mt-6">
+            <div className="surface p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-ink dark:text-white">
+                    Search Appointments
+                  </h3>
+
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Search by patient name
+                  </p>
+                </div>
+
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search patient name..."
+                  className="focus-ring w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-white sm:max-w-sm"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Appointments List */}
           <section className="mt-6 grid gap-4">
             {sessions.length > 0 ? (
               sessions.map((session) => (
@@ -251,11 +292,12 @@ export default function PsychologistDashboard() {
             ) : (
               <div className="surface p-6 text-center">
                 <p className="text-slate-500">
-                  No appointments received yet.
+                  No appointments found.
                 </p>
               </div>
             )}
           </section>
+
         </div>
       </main>
     </div>

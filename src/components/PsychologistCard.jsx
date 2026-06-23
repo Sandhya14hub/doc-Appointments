@@ -70,11 +70,31 @@ export default function PsychologistCard() {
               <Mail className="h-4 w-4 text-lavender" />
               {psychologist.contact.email}
             </span>
+<div className="flex flex-col gap-2">
+  <span className="flex items-center gap-2">
+    <MapPin className="h-4 w-4 text-sage" />
+    {psychologist.contact.address}
+  </span>
 
-            <span className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-sage" />
-              {psychologist.contact.address}
-            </span>
+ <div className="border border-red-500 p-4">
+  <p>TEST ADDRESS</p>
+
+  <a
+    href="https://maps.app.goo.gl/sigu4JRrjKVuVHaz5"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+      background: "red",
+      color: "white",
+      padding: "10px",
+      display: "inline-block",
+      marginTop: "10px",
+    }}
+  >
+    TEST MAP LINK
+  </a>
+</div>
+</div>
           </div>
 
           <div className="mt-8">

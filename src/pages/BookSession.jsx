@@ -17,49 +17,7 @@ export default function BookSession() {
         <section className="app-container section-pad">
           <div className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
             <div className="grid gap-6">
-              <section className="surface p-5 sm:p-7">
-                <MoodTag icon={ShieldCheck} color="sage">
-                  No login required
-                </MoodTag>
-
-                <h1 className="mt-4 text-3xl font-black text-ink dark:text-white sm:text-4xl">
-                  Book a session directly
-                </h1>
-
-                <p className="mt-3 max-w-3xl leading-7 text-slate-600 dark:text-slate-300">
-                  Patients can book a therapy session by entering their own contact details, the doctor they want to see,
-                  and the preferred appointment time. No patient account or JWT is needed.
-                </p>
-
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  {[
-                    {
-                      label: "Direct booking",
-                      value: "Open to all patients",
-                    },
-                    {
-                      label: "Doctor review",
-                      value: "Starts as pending",
-                    },
-                    {
-                      label: "Private details",
-                      value: "Stored with the appointment",
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="mini-surface p-4"
-                    >
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                        {item.label}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-ink dark:text-white">
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              
 
               <SessionForm onBooked={setLatestSession} />
             </div>

@@ -172,7 +172,24 @@ router.get("/", authMiddleware, async (req, res) => {
       return;
     }
 
-    return sendAllAppointments(res);
+    const { search } = req.query;
+
+    let filter = {};
+
+    if (search && search.trim()) {
+      filter.patientName = {
+        $regex: search.trim(),
+        $options: "i", // case-insensitive
+      };
+    }
+
+    const appointments = await Appointment.find(filter)
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      appointments,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -180,7 +197,6 @@ router.get("/", authMiddleware, async (req, res) => {
     });
   }
 });
-
 router.get("/doctor/all", authMiddleware, async (req, res) => {
   try {
     if (!isDoctor(req, res)) {

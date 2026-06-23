@@ -2,9 +2,12 @@
 export const psychologist = {
   name: "Dr. Parvathi Kashyap",
   title: "Consultant Clinical Psychologist",
-  qualification:
-    "M.A. Psychology, M.Com, M.A. Economics, B.Ed",
+
   location: "Seethammadhara, Visakhapatnam",
+
+  googleMapsLink:
+  "https://www.google.com/maps/search/?api=1&query=Seethammadhara+Visakhapatnam",
+
 
   photo: "/assets/images/dr-parvathi-kashyap.jpg",
   gallery: [
@@ -104,12 +107,13 @@ timeline: [
     },
   ],
   
-  contact: {
+ contact: {
   phone: "+91 98765 43210",
   email: "care@serenitymind.example",
   address: "Seethammadhara, Visakhapatnam",
 
-  
+
+
 },
   
 };
